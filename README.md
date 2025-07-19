@@ -1,134 +1,121 @@
-# fake-new-detection
-### **1. Tổng quan Đồ án**
+# 🕵️‍♂️ Project Phát hiện Tin tức Giả mạo bằng các mô hình Transformer
 
-Đồ án này tập trung vào việc xây dựng và đánh giá một pipeline hoàn chỉnh để phát hiện tin tức giả mạo (Fake News Detection) bằng cách sử dụng các kiến trúc Transformer . Hệ thống được thiết kế theo hướng module hóa, bao gồm các giai đoạn từ thu thập, khám phá dữ liệu, tiền xử lý, huấn luyện cho đến đánh giá mô hình. Ba mô hình Transformer tiêu biểu đã được lựa chọn để so sánh hiệu suất: **BERT (bert-base-uncased)**, **RoBERTa (roberta-base)**, và **XLNet (xlnet-base-cased)**.
+Dự án này tập trung vào việc xây dựng và đánh giá một pipeline hoàn chỉnh để phát hiện tin tức giả mạo (Fake News Detection) bằng cách sử dụng các kiến trúc Transformer. Ba mô hình Transformer tiêu biểu đã được lựa chọn để so sánh hiệu suất: **BERT**, **RoBERTa**, và **XLNet**.
 
-Kết quả thực nghiệm cho thấy **RoBERTa** là mô hình đạt hiệu suất cao nhất với F1-score lên đến **99.81%** trên tập kiểm thử. **BERT** cũng cho thấy hiệu quả mạnh mẽ và ổn định với F1-score là **99.18%**. **XLNet** mặc dù có tiềm năng nhưng gặp phải vấn đề overfitting sớm.
+---
 
-### **2. Mục tiêu Đồ án**
+## 🚀 Tổng quan
 
-1.  **Xây dựng một pipeline NLP hoàn chỉnh**, có khả năng tái sử dụng và mở rộng cho bài toán phân loại văn bản.
-2.  **Ứng dụng và so sánh hiệu suất** của ba mô hình Transformer phổ biến (BERT, RoBERTa, XLNet) trên bài toán phát hiện tin giả.
-3.  **Đánh giá các mô hình** một cách toàn diện dựa trên các chỉ số đo lường tiêu chuẩn (Accuracy, Precision, Recall, F1-score) và đưa ra kết luận về mô hình phù hợp nhất.
-4.  **Cung cấp một hệ thống có khả năng dự đoán** nhãn (Thật/Giả) cho một văn bản tin tức mới.
+Trong bối cảnh tin giả ngày càng lan rộng, việc xây dựng các hệ thống tự động để xác minh tính xác thực của thông tin là vô cùng cần thiết. Đồ án này tiếp cận bài toán bằng cách ứng dụng sức mạnh của các mô hình ngôn ngữ lớn (Large Language Models), cụ thể là các kiến trúc Transformer.
 
-### **3. Dữ liệu và Phân tích Khám phá (EDA)**
+Hệ thống được thiết kế theo hướng module hóa, bao gồm đầy đủ các giai đoạn của một dự án Khoa học Dữ liệu:
+1.  **Tải và khám phá dữ liệu (EDA)**
+2.  **Tiền xử lý và làm sạch dữ liệu**
+3.  **Tokenization và chuẩn bị dữ liệu**
+4.  **Huấn luyện và tinh chỉnh (Fine-tuning) mô hình**
+5.  **Đánh giá hiệu suất và so sánh**
+6.  **Dự đoán trên dữ liệu mới (Inference)**
 
-#### **3.1. Nguồn và Đặc điểm Dữ liệu**
--   **Phân tích ban đầu (EDA):**
-    -   **Chart:**
-        - ![image-4.png](attachment:image-4.png)
-        - ![image-5.png](attachment:image-5.png)
-        - ![image-6.png](attachment:image-6.png)
-        - ![image-7.png](attachment:image-7.png)
+## 🎯 Mục tiêu
 
-    *   **Số lượng:** ~78,617 mẫu tin tức.
-    *   **Phân phối nhãn:** Dữ liệu khá cân bằng (44.5% tin thật, 55.5% tin giả), giúp tránh các vấn đề về thiên vị trong quá trình huấn luyện.
-    *   **Dữ liệu thiếu:** Có 29 giá trị `null` trong cột `text`, được xử lý ở bước tiền xử lý.
-    *   **Độ dài văn bản:** Phân phối độ dài cho thấy phần lớn các bài báo có độ dài dưới 1000 từ, nhưng có một số bài rất dài . Quyết định truncate văn bản ở độ dài 512 tokens để phù hợp với kiến trúc của các mô hình Transformer.
-    *   **Word Cloud & N-grams:** Phân tích từ khóa và cụm từ cho thấy sự khác biệt rõ rệt giữa hai loại tin giả và thật:
-        *   **Tin giả:** Thường xoay quanh các chủ đề chính trị gây tranh cãi và tên các chính trị gia nổi tiếng như "Trump", "Clinton", "Obama". Cụm từ "Donald Trump" xuất hiện nhiều nhất.
-        *   **Tin thật:** Sử dụng các thuật ngữ chính thống và có tính thể chế hơn như "government", "state", "Republican", "House".
+*   Xây dựng một pipeline NLP hoàn chỉnh, có khả năng tái sử dụng và mở rộng.
+*   Ứng dụng và so sánh hiệu suất của ba mô hình Transformer phổ biến (BERT, RoBERTa, XLNet).
+*   Đánh giá toàn diện các mô hình dựa trên các chỉ số tiêu chuẩn (Accuracy, Precision, Recall, F1-score).
+*   Cung cấp một hệ thống có khả năng dự đoán nhãn (Thật/Giả) cho một văn bản tin tức mới.
 
-Những phân tích này không chỉ giúp hiểu rõ dữ liệu mà còn cung cấp cơ sở để đưa ra các quyết định trong giai đoạn tiền xử lý và xây dựng mô hình.
+## 📊 Dữ liệu và Phân tích Khám phá (EDA)
 
-### **4. Thiết kế Pipeline và Kiến trúc Hệ thống**
+*   **Nguồn dữ liệu**: Bộ dữ liệu được lấy từ Kaggle: [Fake News Dataset](https://www.kaggle.com/datasets/basdong/fake-news-dataset).
+*   **Kích thước**: ~78,617 mẫu tin tức.
+*   **Phân phối nhãn**: Dữ liệu khá cân bằng (44.5% tin thật, 55.5% tin giả), là điều kiện lý tưởng để huấn luyện mô hình.
 
-Pipeline được thiết kế theo các module độc lập, mỗi module là một lớp (class) đảm nhiệm một chức năng cụ thể, giúp dễ dàng quản lý và tái sử dụng.
+#### Phân tích từ khóa nổi bật
 
-| Lớp (Class) | Chức năng | Chi tiết |
-| :--- | :--- | :--- |
-| **`KaggleDataLoader`** | Tải và hợp nhất dữ liệu | Tương tác với `kagglehub` API, đọc 2 file CSV, gán nhãn `1` (Thật) và `0` (Giả), sau đó gộp thành một DataFrame duy nhất. |
-| **`EDAVisualizer`** | Phân tích và trực quan hóa | Kiểm tra dữ liệu thiếu/trùng lặp, thống kê mô tả, vẽ biểu đồ phân phối nhãn, độ dài văn bản, Word Cloud, và N-grams. |
-| **`DataPreprocessor`** | Làm sạch dữ liệu | Loại bỏ các dòng `null` và các cột không cần thiết, đảm bảo dữ liệu đầu vào cho mô hình là sạch và nhất quán. |
-| **`TextDatasetBuilder`** | Tokenization và tạo Dataset | - Chia dữ liệu thành các tập Train/Val/Test (80-10-10).<br>- Sử dụng `AutoTokenizer` để chuyển văn bản thành các token ID phù hợp với từng mô hình.<br>- Tạo đối tượng `DatasetDict` của Hugging Face, tối ưu cho `Trainer` API. |
-| **`ModelBuilder`** | Tải mô hình pre-trained | Tải mô hình `AutoModelForSequenceClassification` từ Hugging Face Hub với `num_labels=2` . |
-| **`ModelTrainer`** | Cấu hình và Huấn luyện | - Đóng gói mô hình, dữ liệu, và các tham số huấn luyện vào `Trainer` API.<br>- Cấu hình `TrainingArguments` (learning rate, batch size, epochs, early stopping).<br>- Tích hợp `wandb` để theo dõi quá trình huấn luyện. |
-| **`ModelEvaluator`** | Đánh giá hiệu suất | Sử dụng mô hình đã huấn luyện để dự đoán trên tập Test. Tính toán và hiển thị `classification_report` và `confusion_matrix`. |
-| **`FakeNewsPipelineManager`** | Quản lý toàn bộ pipeline | Lớp điều phối chính, gọi tuần tự các module trên để thực thi toàn bộ quy trình từ đầu đến cuối một cách tự động. |
+Phân tích Word Cloud và N-grams cho thấy sự khác biệt rõ rệt giữa hai loại tin:
+*   **Tin giả**: Thường tập trung vào các chủ đề chính trị gây tranh cãi và các nhân vật nổi tiếng như "Trump", "Clinton", "Obama".
+*   **Tin thật**: Sử dụng ngôn ngữ chính thống, mang tính thể chế hơn như "government", "state", "Republican".
 
-### **5. Quy trình Huấn luyện và Đánh giá**
-#### **5.1. Cấu hình Huấn luyện**
-##### **a. Các Siêu tham số Huấn luyện Cơ bản:**
--   **`num_train_epochs=10`**: Số vòng lặp (epoch) tối đa để huấn luyện.
--   **`per_device_train_batch_size=32`**: Kích thước lô dữ liệu cho quá trình huấn luyện.
--   **`learning_rate=5e-5`**: Tốc độ học, một giá trị tiêu chuẩn cho việc fine-tuning các mô hình Transformer.
--   **`weight_decay=0.01`**: Hệ số suy giảm trọng số để giúp giảm thiểu overfitting.
-##### **b. Các Tham số Đặc biệt và Chiến lược Tối ưu:**
-Đây là các thiết lập nâng cao nhằm tăng hiệu quả và chất lượng của quá trình huấn luyện:
--   **`fp16=True` (Huấn luyện Mixed-Precision):** Sử dụng độ chính xác 16-bit để **tăng tốc độ huấn luyện** và **giảm bộ nhớ GPU** sử dụng.
--   **`load_best_model_at_end=True` & `metric_for_best_model="f1"`:** Đảm bảo mô hình cuối cùng được chọn là checkpoint có **F1-score cao nhất** trên tập validation, giúp chọn ra phiên bản tốt nhất thay vì phiên bản cuối cùng.
--   **`callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]`:** Tự động **dừng huấn luyện sớm** nếu F1-score không cải thiện sau 2 epoch, giúp **ngăn chặn overfitting** và tiết kiệm tài nguyên tính toán.
--   **`report_to="wandb"`:** Tích hợp với **Weights & Biases** để **theo dõi và trực quan hóa** toàn bộ quá trình huấn luyện, giúp dễ dàng phân tích và so sánh kết quả.
+| Word Cloud Tin Thật | Word Cloud Tin Giả |
+| :---: | :---: |
+| <img src="./images/image-6.png" width="400"> | <img src="./images/image-7.png" width="400"> |
 
-#### **5.2. Bảng tổng hợp kết quả**
+---
 
-| Mô hình | Accuracy | Precision | Recall | F1-Score | Best Epoch |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RoBERTa** | 99.83% | 99.80% | 99.83% | **99.81%** | Epoch 10 |
-| **BERT** | 99.35% | 99.45% | 99.13% | **99.18%** | Epoch 5 |
-| **XLNet** | 98.51% | 98.87% | 97.77% | **98.32%** | Epoch 1 |
+## ⚙️ Thiết kế Pipeline
 
-*Ghi chú: XLNet dừng sớm ở Epoch 3 do overfitting, mô hình tốt nhất được ghi nhận ở Epoch 1.*
+Hệ thống được xây dựng dựa trên các lớp (class) Python độc lập, giúp mã nguồn trở nên rõ ràng và dễ bảo trì:
 
-#### **5.3. Thảo luận Kết quả**
+| Lớp (Class) | Chức năng |
+| :--- | :--- |
+| `KagleDataLoader` | Tải và hợp nhất dữ liệu từ KaggleHub. |
+| `EDAVisualizer` | Phân tích và trực quan hóa dữ liệu. |
+| `DataPreprocessor` | Làm sạch và chuẩn hóa dữ liệu văn bản. |
+| `TextDatasetBuilder` | Tokenize và tạo `DatasetDict` cho Hugging Face. |
+| `ModelBuilder` | Tải và cấu hình mô hình Transformer. |
+| `ModelTrainer` | Đóng gói và thực hiện quá trình huấn luyện bằng `Trainer` API. |
+| `ModelEvaluator` | Đánh giá mô hình trên tập kiểm thử. |
+| `FakeNewsPipelineManager` | Điều phối toàn bộ luồng công việc. |
 
-1.  **RoBERTa (roberta-base):**
-    -   **Kết quả và đồ thị:**
-    - ![image-9.png](attachment:image-9.png)
-        - Độ chính xác (Accuracy) và F1-Score: Cả hai chỉ số này đều đạt **1.00** tương đương với **100%**. Điều này cho thấy mô hình có khả năng phân loại cực kỳ chính xác và đạt được sự cân bằng tuyệt đối giữa Precision và Recall.
-    -   **Hiệu suất:** Vượt trội nhất với F1-score **99.81%**. Mô hình thể hiện khả năng nắm bắt ngữ cảnh sâu và các sắc thái ngôn ngữ tinh vi, giúp phân biệt tin thật và giả một cách chính xác.
-    -   **Thời gian:** Mặc dù mất nhiều thời gian nhất, nhưng hiệu suất đạt được hoàn toàn xứng đáng.
+## 📈 Kết quả Huấn luyện và Đánh giá
 
-2.  **BERT (bert-base-uncased):**
-    -   **Kết quả và đồ thị:**
-    - ![image-8.png](attachment:image-8.png)
-        - Độ chính xác và F1-score tổng thể rất cao (99%).
-        - Khả năng nhận diện tin giả gần như tuyệt đối (Recall = 1.00), giúp giảm thiểu tối đa việc bỏ sót tin tức sai lệch.
-    
-    -   **Hiệu suất:** Đạt F1-score **99.18%**, chứng tỏ sức mạnh của kiến trúc Transformer gốc. BERT là một lựa chọn rất tốt, cân bằng giữa hiệu suất cao và thời gian huấn luyện hợp lý.
-    -   **Early Stopping:** Mô hình đạt hiệu suất tốt nhất ở epoch thứ 5 và dừng sớm ở epoch thứ 7, cho thấy nó hội tụ nhanh hơn RoBERTa.
+Các mô hình được huấn luyện với các siêu tham số tối ưu, bao gồm cả kỹ thuật **Mixed-Precision (FP16)** để tăng tốc và **Early Stopping** để chống overfitting.
 
+#### Bảng tổng hợp hiệu suất
 
-3.  **XLNet (xlnet-base-cased):**
-    -   **Kết quả và đồ thị:**
-    - ![image-10.png](attachment:image-10.png)
-        - Độ chính xác (Accuracy) và F1-Score: Các chỉ số này đều đạt 99%. Tuy nhiên, cần lưu ý rằng đây là kết quả của mô hình tại epoch đầu tiên, là epoch có hiệu suất tốt nhất trước khi mô hình bắt đầu overfitting.
-    -   **Hiệu suất:** Đạt F1-score tốt nhất là **98.32%** ở epoch đầu tiên. Tuy nhiên, hiệu suất giảm mạnh ở các epoch sau do **overfitting**.
-    -   **Early Stopping:** Cơ chế dừng sớm đã được kích hoạt ở epoch thứ 3, cho thấy mô hình này rất nhạy cảm với dữ liệu và cần các kỹ thuật điều chuẩn (regularization) mạnh hơn hoặc tinh chỉnh siêu tham số kỹ lưỡng hơn.
+| Mô hình | Accuracy | Precision | Recall | F1-Score |
+| :--- | :---: | :---: | :---: | :---: |
+| ✅ **RoBERTa (roberta-base)** | 99.83% | 99.80% | 99.83% | **99.81%** |
+| **BERT (bert-base-uncased)** | 99.35% | 99.45% | 99.13% | **99.18%** |
+| **XLNet (xlnet-base-cased)** | 98.51% | 98.87% | 97.77% | **98.32%** |
 
-#### **5.4. Kết quả Dự đoán (Inference)**
-📰 "NASA confirms presence of microbial life on Europa." → Dự đoán: FAKE
+#### Ma trận nhầm lẫn (Confusion Matrix)
 
-📰 "Bill Gates to implant tracking chips via vaccines, claims viral post." → Dự đoán: FAKE
+| RoBERTa | BERT | XLNet |
+| :---: | :---: | :---: |
+| <img src="./images/image-9.png" width="300"> | <img src="./images/image-8.png" width="300"> | <img src="./images/image-10.png" width="300"> |
 
-📰 "Biden signs executive order on AI regulation." → Dự đoán: FAKE
+**Thảo luận kết quả:**
+*   **RoBERTa** là mô hình có hiệu suất vượt trội nhất, cho thấy khả năng nắm bắt ngữ cảnh sâu sắc và phân biệt các sắc thái ngôn ngữ tinh vi.
+*   **BERT** cũng thể hiện sức mạnh ấn tượng và là một lựa chọn cân bằng giữa hiệu suất và tài nguyên tính toán.
+*   **XLNet** cho kết quả tốt ở epoch đầu tiên nhưng nhanh chóng bị overfitting, cho thấy mô hình này cần các kỹ thuật điều chuẩn mạnh hơn trên bộ dữ liệu này.
 
-📰 "Apple releases new iPhone model with brainwave control." → Dự đoán: FAKE
+## 🔮 Kết quả Dự đoán trên Dữ liệu Mới
 
-📰 "WHO warns of new COVID variant emerging in Southeast Asia." → Dự đoán: FAKE
+Hệ thống được thử nghiệm với một số tiêu đề tin tức giật gân và đã đưa ra dự đoán chính xác:
 
-Các mô hình đều dự đoán chính xác cả 5 câu mẫu là **FAKE**. Điều này cho thấy các mô hình đã học được các đặc trưng cốt lõi của tin giả (thường là các thông tin giật gân, khó tin) và không bị ảnh hưởng bởi sự xuất hiện của các thực thể uy tín (NASA, WHO, Bill Gates), chứng tỏ tính tổng quát hóa cao.
+| Tiêu đề Tin tức | Nhãn Dự đoán |
+| :--- | :---: |
+| "NASA confirms presence of microbial life on Europa." | **FAKE** |
+| "Bill Gates to implant tracking chips via vaccines, claims viral post." | **FAKE** |
+| "Biden signs executive order on AI regulation." | **FAKE** |
+| "Apple releases new iPhone model with brainwave control." | **FAKE**|
+| "WHO warns of new COVID variant emerging in Southeast Asia." | **FAKE** |
 
-### **6. Kết luận**
+Kết quả này cho thấy các mô hình đã học được các đặc trưng cốt lõi của tin giả và có khả năng tổng quát hóa tốt.
 
-Thành công trong việc xây dựng một pipeline NLP mạnh mẽ, có cấu trúc tốt và đạt được kết quả tốt trên bài toán phát hiện tin giả.
+## 💡 Kết luận và Hướng phát triển
 
--   **Mô hình tốt nhất:** **RoBERTa** là mô hình chiến thắng về mặt hiệu suất, phù hợp cho các ứng dụng đòi hỏi độ chính xác cao nhất.
--   **Lựa chọn thực tế:** **BERT** là một lựa chọn thực tế và cân bằng, cho hiệu suất rất tốt với thời gian huấn luyện ngắn hơn.
--   **Bài học từ XLNet:** Cần cẩn trọng với hiện tượng overfitting khi làm việc với các mô hình phức tạp và cần áp dụng các cơ chế điều chuẩn phù hợp.
+*   **Kết luận**: Đồ án đã xây dựng thành công một pipeline NLP hiệu quả. **RoBERTa** được xác định là mô hình tốt nhất cho bài toán này, trong khi **BERT** là một lựa chọn thay thế thực tế và mạnh mẽ.
+*   **Hướng phát triển**:
+    *   **Mở rộng mô hình**: Thử nghiệm với các mô hình lớn hơn và tiên tiến hơn (`DeBERTa`, `Longformer`).
+    *   **Cải thiện dữ liệu**: Tăng cường dữ liệu đa dạng hơn và mở rộng sang các ngôn ngữ khác (ví dụ: tiếng Việt).
+    *   **Triển khai**: Tối ưu hóa mô hình (quantization, pruning) và triển khai dưới dạng một ứng dụng web/API.
+    *   **Tăng tính giải thích**: Sử dụng các công cụ như LIME/SHAP để giải thích lý do tại sao một tin tức được phân loại là thật/giả.
 
-### **7. Hướng phát triển trong Tương lai**
+---
 
--   **Mở rộng mô hình và fine-tuning chuyên sâu:**
-    -   Thử nghiệm với các mô hình lớn hơn và tiên tiến hơn như `DeBERTa`, `Longformer`, `RoBERTa-large`,...
-    -   Áp dụng các kỹ thuật fine-tuning nâng cao như gradual unfreezing hoặc layer-wise learning rate decay.
--   **Cải thiện dữ liệu:**
-    -   Thu thập thêm dữ liệu đa dạng hơn từ nhiều nguồn và nhiều lĩnh vực (kinh tế, y tế, công nghệ) để tăng tính tổng quát của mô hình.
-    -   Mở rộng sang dữ liệu đa ngôn ngữ (ví dụ: tiếng Việt).
--   **Tối ưu hóa và Triển khai:**
-    -   Sử dụng các kỹ thuật như quantization, pruning để tối ưu hóa mô hình cho việc triển khai.
-    -   Xây dựng một ứng dụng web/mobile đơn giản để người dùng có thể trực tiếp kiểm tra tin tức.
--   **Nâng cao tính giải thích :**
-    -   Tích hợp các công cụ như LIME hoặc SHAP để giải thích lý do tại sao một văn bản được phân loại là thật/giả, giúp tăng độ tin cậy của hệ thống.
--   **Đánh giá mô hình theo chiều sâu: Dùng thêm các chỉ số ngoài F1 như MCC hoặc AUROC.**
+## 🔧 Cách chạy Project
+
+1.  **Clone repository này về máy của bạn.**
+2.  **Cài đặt các thư viện cần thiết:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  **Chuẩn bị API Keys:**
+    Để theo dõi quá trình huấn luyện, bạn cần có tài khoản [Hugging Face](https://huggingface.co/) và [Weights & Biases](https://wandb.ai/). Sau đó, thiết lập các biến môi trường sau:
+    ```bash
+    export HUGGINGFACE_TOKEN='your_hf_token'
+    export WANDB_API_KEY='your_wandb_key'
+    ```
+4.  **Chạy Notebook:**
+    Mở và chạy file `Báo-cáo-NLP.ipynb` trong môi trường Jupyter hoặc Google Colab (khuyến khích sử dụng GPU để tăng tốc độ huấn luyện).
