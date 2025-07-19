@@ -72,7 +72,7 @@ Các mô hình được huấn luyện với các siêu tham số tối ưu, bao
 
 | RoBERTa | BERT | XLNet |
 | :---: | :---: | :---: |
-| <img src="./images/image-9.png" width="300"> | <img src="./images/image-8.png" width="300"> | <img src="./images/image-10.png" width="300"> |
+| <img src="./images/image-10.png" width="300"> | <img src="./images/image-9.png" width="300"> | <img src="./images/image-11.png" width="300"> |
 
 **Thảo luận kết quả:**
 *   **RoBERTa** là mô hình có hiệu suất vượt trội nhất, cho thấy khả năng nắm bắt ngữ cảnh sâu sắc và phân biệt các sắc thái ngôn ngữ tinh vi.
