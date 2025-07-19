@@ -118,4 +118,4 @@ Kết quả này cho thấy các mô hình đã học được các đặc trưn
     export WANDB_API_KEY='your_wandb_key'
     ```
 4.  **Chạy Notebook:**
-    Mở và chạy file `Báo-cáo-NLP.ipynb` trong môi trường Jupyter hoặc Google Colab (khuyến khích sử dụng GPU để tăng tốc độ huấn luyện).
+    Mở và chạy file `FAKE_NEWS_DETECTION_project.ipynb` trong môi trường Jupyter hoặc Google Colab (khuyến khích sử dụng GPU để tăng tốc độ huấn luyện).
